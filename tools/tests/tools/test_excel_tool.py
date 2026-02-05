@@ -102,9 +102,13 @@ class TestExcelRead:
         assert "error" in result
         assert "File not found" in result["error"]
 
-    def test_read_invalid_extension(self, excel_tools):
+    def test_read_invalid_extension(self, excel_tools, session_dir):
         """Test reading file with invalid extension."""
         excel_read = excel_tools["excel_read"]
+        
+        # Create a .txt file first so it exists but has wrong extension
+        txt_file = session_dir / "test.txt"
+        txt_file.write_text("test content")
         
         result = excel_read(
             path="test.txt",
@@ -114,7 +118,7 @@ class TestExcelRead:
         )
         
         assert "error" in result
-        assert "File must have .xlsx or .xls extension" in result["error"]
+        assert "File must have .xlsx or .xlsm extension" in result["error"]
 
     def test_read_with_limit_offset(self, excel_tools, basic_excel):
         """Test reading with limit and offset."""
@@ -229,7 +233,7 @@ class TestExcelWrite:
         )
         
         assert "error" in result
-        assert "File must have .xlsx or .xls extension" in result["error"]
+        assert "File must have .xlsx or .xlsm extension" in result["error"]
 
 
 class TestExcelAppend:
@@ -291,6 +295,54 @@ class TestExcelAppend:
         
         assert "error" in result
         assert "rows cannot be empty" in result["error"]
+
+    def test_append_missing_columns(self, excel_tools, basic_excel):
+        """Test appending rows with missing columns fills with empty strings."""
+        excel_append = excel_tools["excel_append"]
+
+        # Add row with missing 'City' column
+        new_rows = [
+            {"Name": "David", "Age": 40}  # Missing 'City'
+        ]
+
+        result = excel_append(
+            path="test.xlsx",
+            workspace_id=TEST_WORKSPACE_ID,
+            agent_id=TEST_AGENT_ID,
+            session_id=TEST_SESSION_ID,
+            rows=new_rows
+        )
+
+        assert result["success"] is True
+        
+        # Verify the missing column was filled with empty string
+        df = pd.read_excel(basic_excel, sheet_name="Sheet1")
+        # pandas might read empty cells as NaN, so check for that too
+        city_value = df.iloc[-1]["City"]
+        assert pd.isna(city_value) or city_value == ""
+
+    def test_append_extra_columns(self, excel_tools, basic_excel):
+        """Test appending rows with extra columns filters them out."""
+        excel_append = excel_tools["excel_append"]
+
+        # Add row with extra 'Country' column  
+        new_rows = [
+            {"Name": "David", "Age": 40, "City": "Berlin", "Country": "Germany"}
+        ]
+
+        result = excel_append(
+            path="test.xlsx",
+            workspace_id=TEST_WORKSPACE_ID,
+            agent_id=TEST_AGENT_ID,
+            session_id=TEST_SESSION_ID,
+            rows=new_rows
+        )
+
+        assert result["success"] is True
+        
+        # Verify extra column was filtered out
+        df = pd.read_excel(basic_excel, sheet_name="Sheet1")
+        assert "Country" not in df.columns
 
 
 class TestExcelInfo:

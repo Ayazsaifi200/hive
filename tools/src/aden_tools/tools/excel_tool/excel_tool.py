@@ -42,11 +42,11 @@ def register_tools(mcp: FastMCP) -> None:
         try:
             secure_path = get_secure_path(path, workspace_id, agent_id, session_id)
 
-            if not path.lower().endswith((".xlsx", ".xls")):
-                return {"error": "File must have .xlsx or .xls extension"}
-
             if not os.path.exists(secure_path):
                 return {"error": f"File not found: {path}"}
+
+            if not path.lower().endswith((".xlsx", ".xlsm")):
+                return {"error": "File must have .xlsx or .xlsm extension"}
 
             # Read Excel file
             try:
@@ -87,6 +87,9 @@ def register_tools(mcp: FastMCP) -> None:
                 # Get column names
                 columns = df.columns.tolist()
 
+                # Store total row count before applying pagination  
+                total_rows = len(df)
+
                 # Apply offset and limit
                 if offset > 0:
                     df = df.iloc[offset:]
@@ -95,10 +98,6 @@ def register_tools(mcp: FastMCP) -> None:
 
                 # Convert to list of dictionaries, handling NaN values
                 rows = df.fillna("").to_dict("records")
-
-                # Get total row count (before offset/limit)
-                total_df = pd.read_excel(secure_path, sheet_name=target_sheet)
-                total_rows = len(total_df)
 
                 return {
                     "success": True,
@@ -148,8 +147,8 @@ def register_tools(mcp: FastMCP) -> None:
         try:
             secure_path = get_secure_path(path, workspace_id, agent_id, session_id)
 
-            if not path.lower().endswith((".xlsx", ".xls")):
-                return {"error": "File must have .xlsx or .xls extension"}
+            if not path.lower().endswith((".xlsx", ".xlsm")):
+                return {"error": "File must have .xlsx or .xlsm extension"}
 
             if not columns:
                 return {"error": "columns cannot be empty"}
@@ -168,11 +167,7 @@ def register_tools(mcp: FastMCP) -> None:
             # Create DataFrame and write to Excel
             df = pd.DataFrame(filtered_rows, columns=columns)
 
-            # Use .xlsx extension for better compatibility
-            if path.lower().endswith(".xls"):
-                # Convert to .xlsx for better support
-                secure_path = secure_path.replace(".xls", ".xlsx")
-                path = path.replace(".xls", ".xlsx")
+
 
             df.to_excel(secure_path, sheet_name=sheet_name, index=False)
 
@@ -217,8 +212,8 @@ def register_tools(mcp: FastMCP) -> None:
             if not os.path.exists(secure_path):
                 return {"error": f"File not found: {path}"}
 
-            if not path.lower().endswith((".xlsx", ".xls")):
-                return {"error": "File must have .xlsx or .xls extension"}
+            if not path.lower().endswith((".xlsx", ".xlsm")):
+                return {"error": "File must have .xlsx or .xlsm extension"}
 
             if not rows:
                 return {"error": "rows cannot be empty"}
@@ -260,7 +255,7 @@ def register_tools(mcp: FastMCP) -> None:
             # Handle writing - preserve other sheets if they exist
             if len(available_sheets) == 1:
                 # Single sheet - simple write
-                combined_df.to_excel(secure_path, sheet_name=target_sheet, index=False) # type: ignore
+                combined_df.to_excel(secure_path, sheet_name=target_sheet, index=False) 
             else:
                 # Multiple sheets - preserve others
                 # First, read all existing sheet data
@@ -314,8 +309,8 @@ def register_tools(mcp: FastMCP) -> None:
             if not os.path.exists(secure_path):
                 return {"error": f"File not found: {path}"}
 
-            if not path.lower().endswith((".xlsx", ".xls")):
-                return {"error": "File must have .xlsx or .xls extension"}
+            if not path.lower().endswith((".xlsx", ".xlsm")):
+                return {"error": "File must have .xlsx or .xlsm extension"}
 
             # Get file info
             file_stat = os.stat(secure_path)
@@ -325,13 +320,10 @@ def register_tools(mcp: FastMCP) -> None:
             with pd.ExcelFile(secure_path) as xls:
                 sheets_info = []
                 for sheet_name in xls.sheet_names:
-                    # Read just the header to get column info
-                    df = pd.read_excel(secure_path, sheet_name=sheet_name, nrows=0)
+                    # Read the sheet once to get both column info and row count
+                    df = xls.parse(sheet_name=sheet_name)
                     columns = df.columns.tolist()
-
-                    # Get row count
-                    df_full = pd.read_excel(secure_path, sheet_name=sheet_name)
-                    row_count = len(df_full)
+                    row_count = len(df)
 
                     sheets_info.append(
                         {
@@ -381,8 +373,8 @@ def register_tools(mcp: FastMCP) -> None:
         try:
             secure_path = get_secure_path(path, workspace_id, agent_id, session_id)
 
-            if not path.lower().endswith((".xlsx", ".xls")):
-                return {"error": "File must have .xlsx or .xls extension"}
+            if not path.lower().endswith((".xlsx", ".xlsm")):
+                return {"error": "File must have .xlsx or .xlsm extension"}
 
             if not columns:
                 return {"error": "columns cannot be empty"}
