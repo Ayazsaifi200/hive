@@ -255,7 +255,7 @@ def register_tools(mcp: FastMCP) -> None:
             # Handle writing - preserve other sheets if they exist
             if len(available_sheets) == 1:
                 # Single sheet - simple write
-                combined_df.to_excel(secure_path, sheet_name=target_sheet, index=False) 
+                combined_df.to_excel(secure_path, sheet_name=target_sheet, index=False)  #type: ignore 
             else:
                 # Multiple sheets - preserve others
                 # First, read all existing sheet data

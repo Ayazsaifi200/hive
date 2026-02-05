@@ -78,16 +78,17 @@ def register_all_tools(
     register_slack(mcp, credentials=credentials)
 
     # Register file system toolkits
-    register_view_file(mcp)
-    register_write_to_file(mcp)
-    register_list_dir(mcp)
-    register_replace_file_content(mcp)
-    register_apply_diff(mcp)
-    register_apply_patch(mcp)
-    register_grep_search(mcp)
-    register_execute_command(mcp)
-    register_data_tools(mcp)
+    register_view_file(mcp) #type: ignore
+    register_write_to_file(mcp) #type: ignore
+    register_list_dir(mcp) #type: ignore
+    register_replace_file_content(mcp) #type: ignore
+    register_apply_diff(mcp) #type: ignore
+    register_apply_patch(mcp) #type: ignore
+    register_grep_search(mcp)  #type: ignore
+    register_execute_command(mcp)   #type: ignore
+    register_data_tools(mcp) #type: ignore
     register_csv(mcp)
+    # Register Excel tool for spreadsheet operations (.xlsx, .xlsm)
     register_excel(mcp)
 
     return [

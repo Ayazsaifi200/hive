@@ -10,7 +10,7 @@ from aden_tools.tools.example_tool.example_tool import register_tools
 def example_tool_fn(mcp: FastMCP):
     """Register and return the example_tool function."""
     register_tools(mcp)
-    return mcp._tool_manager._tools["example_tool"].fn
+    return mcp._tool_manager._tools["example_tool"].func # type: ignore[attr-defined]
 
 
 class TestExampleTool:
